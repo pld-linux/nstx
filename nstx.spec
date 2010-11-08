@@ -38,7 +38,7 @@ The nstx client.
 
 %prep
 %setup -q -n %{name}-%{version}-%{subver}
-%{__gzip} -dc %{SOURCE1} | %{__patch} %{S:0} -p1
+%{__gzip} -dc %{SOURCE1} | %{__patch} -p1
 
 %build
 %{__make} \
@@ -51,9 +51,9 @@ install -d $RPM_BUILD_ROOT{%{_sbindir},%{_mandir}/man8,/etc/{rc.d/init.d,sysconf
 install -p nstxd nstxcd $RPM_BUILD_ROOT%{_sbindir}
 cp -a *.8 $RPM_BUILD_ROOT%{_mandir}/man8
 install -p %{SOURCE2} $RPM_BUILD_ROOT/etc/rc.d/init.d/%{name}d
-cp -a %{SOURCE3} $RPM_BUILD_ROOT/etc/sysconfig
+cp -a %{SOURCE3} $RPM_BUILD_ROOT/etc/sysconfig/%{name}d
 install -p %{SOURCE4} $RPM_BUILD_ROOT/etc/rc.d/init.d/%{name}cd
-cp -a %{SOURCE5} $RPM_BUILD_ROOT/etc/sysconfig
+cp -a %{SOURCE5} $RPM_BUILD_ROOT/etc/sysconfig/%{name}cd
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -83,7 +83,7 @@ fi
 %doc README Changelog
 %attr(755,root,root) %{_sbindir}/nstxd
 %{_mandir}/man8/nstxd.8*
-%{_sysconfdir}/%{name}/nstxd.*
+%config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/nstxd
 %attr(754,root,root) /etc/rc.d/init.d/nstxd
 
 %files -n nstxcd
@@ -91,5 +91,5 @@ fi
 %doc README Changelog
 %attr(755,root,root) %{_sbindir}/nstxcd
 %{_mandir}/man8/nstxcd.8*
-%{_sysconfdir}/%{name}/nstxcd.*
+%config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/nstxcd
 %attr(754,root,root) /etc/rc.d/init.d/nstxcd
