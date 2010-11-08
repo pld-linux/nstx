@@ -1,0 +1,19 @@
+# Defaults for nstx initscript
+# sourced by /etc/rc.d/init.d/nstxd
+# installed at /etc/sysconfig/nstx by the maintainer scripts
+
+#
+# This is a POSIX shell fragment
+#
+
+# The name of the domain for the tunnel - needed for client and server
+NSTX_DOMAIN=""
+
+# uncomment to bring up tun0 automatically
+#ifup_tun=tun0
+#tun_ip_address=10.0.0.1
+#tun_ip_netmask=255.255.255.0
+
+# uncomment to tell nstx to bind to a specific interface
+#NSTX_IFACE="1.2.3.4"
+

@@ -1,0 +1,105 @@
+#!/bin/sh
+#
+# nstxcd	start and stop the nstx IP over DNS client
+#
+# chkconfig:	345 20 80
+#
+# processname:	nstxcd
+#
+# $Id$
+
+# Source function library
+. /etc/rc.d/init.d/functions
+
+# Get network config
+. /etc/sysconfig/network
+
+# Check that networking is up.
+if is_yes "${NETWORKING}"; then
+	if [ ! -f /var/lock/subsys/network -a "$1" != stop -a "$1" != status ]; then
+		msg_network_down "nstxcd"
+		exit 1
+	fi
+else
+	exit 0
+fi
+
+# Get service config - may override defaults
+[ -f /etc/sysconfig/nstxcd ] && . /etc/sysconfig/nstxcd
+
+start() {
+	# Check if the service is already running?
+	if [ -f /var/lock/subsys/nstxcd ]; then
+		msg_already_running "nstxcd"
+		return
+	fi
+
+	msg_starting "nstxcd"
+	daemon --fork /usr/sbin/nstxcd $NSTX_OPTIONS $NSTX_DOMAIN $NSTX_DNS_SERVER
+	RETVAL=$?
+
+	sleep 1
+	if [ -n "$ifup_tun" ]; then
+	    ifconfig $ifup_tun up $tun_ip_address netmask $tun_ip_netmask
+	fi
+
+	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/nstxcd
+}
+
+stop() {
+	if [ ! -f /var/lock/subsys/nstxcd ]; then
+		msg_not_running "nstxcd"
+		return
+	fi
+
+	# Stop daemons.
+	msg_stopping "nstxcd"
+
+	if [ -n "$ifup_tun" ]; then
+		ifconfig $ifup_tun down >/dev/null 2>&1
+	fi
+
+	killproc nstxcd
+	rm -f /var/lock/subsys/nstxcd
+}
+
+condrestart() {
+	if [ ! -f /var/lock/subsys/nstxcd ]; then
+		msg_not_running "nstxcd"
+		RETVAL=$1
+		return
+	fi
+
+	stop
+	start
+}
+
+RETVAL=0
+# See how we were called.
+case "$1" in
+  start)
+	start
+	;;
+  stop)
+	stop
+	;;
+  restart)
+	stop
+	start
+	;;
+  try-restart)
+	condrestart 0
+	;;
+  force-reload)
+	condrestart 7
+	;;
+  status)
+	status nstxcd
+	RETVAL=$?
+	;;
+  *)
+	msg_usage "$0 {start|stop|restart|try-restart|force-reload|status}"
+	exit 3
+esac
+
+exit $RETVAL
